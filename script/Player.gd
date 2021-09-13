@@ -1,33 +1,66 @@
 extends KinematicBody2D
 
-
-# Declare member variables here. Examples:
-# var a = 2
-# var b = "text"
+var gravity = 20
+var gravityMax = 500
+var jumpPower =  -500
 var dirChar = 1
-export(int) var speed =  200
+var velocity = Vector2()
+var state
+export(int) var speed =  200 
 
-# Called when the node enters the scene tree for the first time.
+
 func _ready():
 	pass # Replace with function body.
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _physics_process(delta):
-	var velocity = Vector2.ZERO
-	
-	if Input.is_action_pressed("ui_right"):
-		velocity.x += 1.0
+
+func inputKeyPressRespond():
+	if Input.is_action_pressed("ui_right") and Input.is_action_pressed("ui_left"):
+		velocity.x = 0
+	elif Input.is_action_pressed("ui_right"):
+		velocity.x = speed
 		dirChar = 1
-	if Input.is_action_pressed("ui_left"):
-		velocity.x -= 1.0
+		state = "Move"
+	elif Input.is_action_pressed("ui_left"):
+		velocity.x = -speed
 		dirChar = -1
-	
-	if velocity.x == 0:
-		$AnimationTree.set("parameters/Idle/blend_position",Vector2(dirChar,0))
-		$AnimationTree.get("parameters/playback").travel("Idle")
+		state = "Move"
 	else:
-		$AnimationTree.set("parameters/Run/blend_position",Vector2(dirChar,0))
-		$AnimationTree.get("parameters/playback").travel("Run")
-#	velocity = velocity.normalized()
-	move_and_slide(velocity * speed)
-	pass
+		velocity.x = 0
+		
+
+	if Input.is_action_pressed("ui_down"):
+		if is_on_floor():
+			state = "Duck"
+			velocity.x = 0
+	
+	if Input.is_action_pressed("ui_up"):
+		if is_on_floor():
+			print("Jump")
+			state = "Jump"
+			velocity.y = jumpPower
+			
+			
+func updateMovementChar():
+	velocity.y += gravity
+	if velocity.y > gravityMax: velocity.y = gravityMax
+	velocity = move_and_slide(velocity , Vector2(0,-1))
+
+func updateAnimation():
+	if !is_on_floor():
+		$AnimationTree.set("parameters/Jump/blend_position",Vector2(dirChar,-velocity.y))
+		$AnimationTree.get("parameters/playback").travel("Jump")
+	
+	else:
+		if velocity.x == 0:
+			$AnimationTree.set("parameters/Idle/blend_position",Vector2(dirChar,0))
+			$AnimationTree.get("parameters/playback").travel("Idle")
+		else:
+			$AnimationTree.set("parameters/Run/blend_position",Vector2(dirChar,0))
+			$AnimationTree.get("parameters/playback").travel("Run")
+
+
+func _physics_process(delta):
+	inputKeyPressRespond()
+	updateMovementChar()
+	updateAnimation()
+	
