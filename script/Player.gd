@@ -6,6 +6,8 @@ var jumpPower =  -500
 var dirChar = 1
 var velocity = Vector2()
 var state
+
+var attackWaitingList = []
 export(int) var speed =  200 
 
 
@@ -39,7 +41,22 @@ func inputKeyPressRespond():
 			state = "Jump"
 			velocity.y = jumpPower
 			
-			
+	if Input.is_action_just_pressed("attack"):
+		if Input.is_action_pressed("ui_right"):
+			attackWaitingList.push_back( "-> Attack")
+			pass
+		elif Input.is_action_pressed("ui_left"):
+			attackWaitingList.push_back( "<- Attack")
+			pass
+		else:
+			attackWaitingList.push_back("Attack")
+			pass
+		
+		get_parent().get_node("RichTextLabel").text = ""
+		for attackName in attackWaitingList:
+			get_parent().get_node("RichTextLabel").text += "\n" + attackName
+	
+	
 func updateMovementChar():
 	velocity.y += gravity
 	if velocity.y > gravityMax: velocity.y = gravityMax
