@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=2]
+[gd_scene load_steps=36 format=2]
 
 [ext_resource path="res://other asset/adventurer-v1.5-SheetJelek.png" type="Texture" id=1]
 [ext_resource path="res://script/Player.gd" type="Script" id=2]
@@ -389,22 +389,18 @@ blend_mode = 1
 
 [sub_resource type="AnimationNodeStateMachineTransition" id=31]
 
-[sub_resource type="AnimationNodeStateMachineTransition" id=32]
-
-[sub_resource type="AnimationNodeStateMachineTransition" id=33]
-
-[sub_resource type="AnimationNodeStateMachine" id=34]
+[sub_resource type="AnimationNodeStateMachine" id=32]
 states/Idle/node = SubResource( 17 )
 states/Idle/position = Vector2( 372, 96 )
 states/Jump/node = SubResource( 22 )
 states/Jump/position = Vector2( 473, 203 )
 states/Run/node = SubResource( 27 )
 states/Run/position = Vector2( 600, 101 )
-transitions = [ "Idle", "Run", SubResource( 28 ), "Run", "Idle", SubResource( 29 ), "Idle", "Jump", SubResource( 30 ), "Run", "Jump", SubResource( 31 ), "Jump", "Run", SubResource( 32 ), "Jump", "Idle", SubResource( 33 ) ]
+transitions = [ "Idle", "Run", SubResource( 28 ), "Run", "Idle", SubResource( 29 ), "Idle", "Jump", SubResource( 30 ), "Jump", "Idle", SubResource( 31 ) ]
 start_node = "Idle"
 graph_offset = Vector2( 12, 57 )
 
-[sub_resource type="AnimationNodeStateMachinePlayback" id=35]
+[sub_resource type="AnimationNodeStateMachinePlayback" id=33]
 
 [node name="Player" type="KinematicBody2D"]
 script = ExtResource( 2 )
@@ -417,7 +413,7 @@ shape = SubResource( 1 )
 texture = ExtResource( 1 )
 hframes = 7
 vframes = 16
-frame = 53
+frame = 3
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 anims/attack_cb01_right = SubResource( 2 )
@@ -433,9 +429,10 @@ anims/run_left = SubResource( 11 )
 anims/run_right = SubResource( 12 )
 
 [node name="AnimationTree" type="AnimationTree" parent="."]
-tree_root = SubResource( 34 )
+tree_root = SubResource( 32 )
 anim_player = NodePath("../AnimationPlayer")
-parameters/playback = SubResource( 35 )
+active = true
+parameters/playback = SubResource( 33 )
 parameters/Idle/blend_position = Vector2( 0.406557, 0.12931 )
 parameters/Jump/blend_position = Vector2( 0.518033, -0.62069 )
 parameters/Run/blend_position = Vector2( -0.614754, 0.232759 )
