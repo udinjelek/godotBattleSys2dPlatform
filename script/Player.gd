@@ -8,6 +8,10 @@ var dirCharHorizontal = 0
 var velocity = Vector2()
 var state
 
+var attackSquanceMax = 3 
+var attackSquanceNow = 0
+
+var inAttackAnimationState = 0
 var attackWaitingList = []
 export(int) var speed =  200 
 
@@ -22,19 +26,17 @@ func inputKeyPressRespond():
 	elif Input.is_action_pressed("ui_right"):
 		velocity.x = speed
 		dirChar = 1
-		dirCharHorizontal = 0
 		state = "Move"
-		$Sprite.set_scale(Vector2(1, 1))
+		
 	elif Input.is_action_pressed("ui_left"):
 		velocity.x = -speed
 		dirChar = -1
-		dirCharHorizontal = 1
 		state = "Move"
 		$Sprite.set_scale(Vector2(-1, 1))
 	else:
 		state = "Idle"
 		velocity.x = 0
-		
+
 	
 	if Input.is_action_pressed("ui_down"):
 		if is_on_floor():
@@ -46,8 +48,13 @@ func inputKeyPressRespond():
 			state = "Jump"
 			velocity.y = jumpPower
 			
-	if Input.is_action_just_pressed("attack"):
-		state = "Attack"
+	if (Input.is_action_just_pressed("attack") \
+	and attackSquanceNow < attackSquanceMax ):
+		attackSquanceNow = attackSquanceNow + 1
+		
+		if is_on_floor() == true: 	state = "Attack"
+		if is_on_floor() == false: 	state = "AttackAir"
+		
 		if Input.is_action_pressed("ui_right"):
 			attackWaitingList.push_back( "-> Attack")
 			pass
@@ -72,17 +79,32 @@ func updateMovementChar():
 		velocity.x = 0
 	
 	velocity = move_and_slide(velocity , Vector2(0,-1))
+
 func updateAnimation():
 	
-	if !is_on_floor():
-		$AnimationTree.set("parameters/trans_onAir/current",1)
-		if velocity.y >0:
-			$AnimationTree.set("parameters/trans_airPost/current",1)
-		else:
-			$AnimationTree.set("parameters/trans_airPost/current",0)
+	if dirChar == 1: 	$Sprite.set_scale(Vector2(1, 1))
+		
+	if dirChar == -1:	$Sprite.set_scale(Vector2(-1, 1))
+	
+	if is_on_floor() == false:
+		if inAttackAnimationState == 0 :
+			if state == "AttackAir":
+				$AnimationTree.set("parameters/trans_onAttack/current",1)
+				$AnimationTree.set("parameters/trans_attackMode/current",3)
+			else:	
+				$AnimationTree.set("parameters/trans_onAir/current",1)
+				if velocity.y >0:
+					$AnimationTree.set("parameters/trans_airPost/current",1)
+				else:
+					$AnimationTree.set("parameters/trans_airPost/current",0)
+		
+		elif inAttackAnimationState == 1:
+			pass
+		
+		
 		
 	
-	else:
+	elif is_on_floor() == true:
 		$AnimationTree.set("parameters/trans_onAir/current",0)
 		if state == "Attack":
 			$AnimationTree.set("parameters/trans_onAttack/current",1)
@@ -94,13 +116,34 @@ func updateAnimation():
 			
 			$AnimationTree.set("parameters/trans_moveState/current",1)
 
-
+func normalizeVariable():
+	inAttackAnimationState = $AnimationTree.get("parameters/trans_onAttack/current")
+	if inAttackAnimationState == 0: resetAttackState()
+		
 func _physics_process(delta):
 	inputKeyPressRespond()
 	updateMovementChar()
 	updateAnimation()
+	normalizeVariable()
+	
+func resetAttackState():
+	$AnimationTree.set("parameters/trans_onAttack/current",0)
+	attackSquanceNow = 0
+	attackWaitingList.clear()
 
 func onAttackFinished():
-	print("done")
+	var tmpNoAttackNow = $AnimationTree.get("parameters/trans_attackMode/current")
+	print(tmpNoAttackNow)
+	
+	attackWaitingList.pop_front()
 	state = "Idle"
-	$AnimationTree.set("parameters/trans_onAttack/current",0)
+	if len(attackWaitingList) == 0: 
+		resetAttackState()
+	else:
+		
+		
+		if tmpNoAttackNow < 2:
+			$AnimationTree.set("parameters/trans_attackMode/current",tmpNoAttackNow + 1)
+		else:
+			resetAttackState()
+
