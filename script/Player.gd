@@ -17,6 +17,7 @@ export(int) var speed =  200
 
 
 func _ready():
+	$AnimationTree.active = true
 	pass # Replace with function body.
 
 
